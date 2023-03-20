@@ -5,4 +5,4 @@ bluetooth classic demo
 pico w, flutter android app, btstack
 ```
 
-youtube link
+[youtube demo](https://www.youtube.com/watch?v=ko_IgcIizaU)
