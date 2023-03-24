@@ -12,5 +12,7 @@ modified flutter main.dart to use dropdownbutton and maps
 number to pico w mac address, I use linux bluetoothctl scan
 to find the individual pico w mac address then I use a 
 felt tip pen to mark the unique number on the metal 
-shield of the pico w
+shield of the pico w, the number on the metal shield maps to a
+longer mac address of the pico w, see flutter modified file and
+read the comment
 ```
