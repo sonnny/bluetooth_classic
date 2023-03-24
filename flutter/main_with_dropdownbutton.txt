@@ -1,0 +1,118 @@
+//
+// demo classic bluetooth to pico w btstack spp_counter.c
+// flutter create your_project
+// cd your_project
+// flutter pub add flutter_bluetooth_serial
+
+// modified classic bluetooth to pico w btstack spp_counter.c
+// added dropdownbutton to choose which pico w to connect
+// todo implement hive (local database to save mac id and don't have to be hardcoded)
+// tested on pixel 4 android 13
+//
+// add to android/app/src/main/AndroidManifest.xml
+// <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />   
+// <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+// <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+// tested on pixel 4 android 13
+// goto settings and give app location permissions
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+// I use linux bluetoothctl to find the mac address of each pico w
+// then I use a felt tip pen and mark the top of the metal shield of the pico w with a unique number
+
+final Map<int, String> dataset = {
+  1: "28:CD:C1:01:54:E7",
+  2: "43:43:A2:12:1F:AC",
+  3: "43:43:A2:12:1F:AC",
+  4: "28:CD:C1:00:E7:A0",
+  5: "28:CD:C1:00:74:00",  
+  6: "28:CD:C1:01:54:E9",
+  7: "28:CD:C1:01:8D:5D",
+};
+
+final TextStyle statStyle = TextStyle(fontSize:34,fontWeight:FontWeight.bold);
+final TextStyle myStyle = TextStyle(fontSize:40, color: Colors.green, fontWeight:FontWeight.bold);
+
+void main() { runApp(const MyApp()); }
+
+class MyApp extends StatelessWidget {
+const MyApp({super.key});
+
+@override Widget build(BuildContext context) {
+return MaterialApp(title: 'bluetooth classic',
+theme: ThemeData(primarySwatch: Colors.blue),
+home: const MyHomePage(title: 'Flutter Demo Home Page'));}}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();}
+
+class _MyHomePageState extends State<MyHomePage> {
+
+int? dropdownValue;
+String? macAddress;
+
+late BluetoothConnection connection;
+String inputData = "not connected";
+final Uint8List blink = Uint8List.fromList([0x74, 0x74]);
+
+void connect() async {
+  try {
+    connection = await BluetoothConnection.toAddress(macAddress);
+    connection!.input!.listen((Uint8List data) {
+        setState(() {
+          inputData = ascii.decode(data);});
+    }).onDone(() {
+        print('Disconnected by remote request');
+    });}
+  catch (exception) { print(exception.toString()); }}
+
+@override Widget build(BuildContext context) {
+return Scaffold(appBar: AppBar(title: Text('bluetooth classic demo with dropdown')),
+
+body: Center(child: Column(children:[
+      
+  SizedBox(height: 50.0),
+
+  ElevatedButton(child: Text('blink',style:statStyle),
+    onPressed:() => connection.output.add(blink)),
+     
+  DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: dropdownValue,
+              focusColor: Colors.white,
+              items: dataset.keys.map((int value) {
+                return DropdownMenuItem(
+                  value: value,
+                  child: Text(value.toString()),
+                );
+              }).toList(),
+              
+              onChanged: (v) {
+                setState(() {
+                  dropdownValue = v;
+                  macAddress = dataset[dropdownValue!].toString();
+                  print(macAddress);
+                });
+              },
+            ),
+          ),  
+    
+    Text(
+      dropdownValue == null
+      ? "Select picow id "
+      : dataset[dropdownValue!].toString()),
+    
+])),
+        
+floatingActionButton: FloatingActionButton(onPressed: connect,
+  child: const Icon(Icons.bluetooth)));}}
